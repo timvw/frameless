@@ -238,6 +238,8 @@ class TypedDataset[T] protected[frameless](val dataset: Dataset[T])(implicit val
     ): TypedColumn[T, A] =
       new TypedColumn[T, A](dataset(column.value.name).as[A](TypedExpressionEncoder[A]))
 
+  def col[A](x: Function1[T, A]): TypedColumn[T, A] = macro TypedColumnMacro.impl[T, A]
+
   /** Projects the entire TypedDataset[T] into a single column of type TypedColumn[T,T]
     * {{{
     *   ts: TypedDataset[Foo] = ...
