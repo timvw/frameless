@@ -15,6 +15,8 @@ import shapeless.labelled.FieldType
 import shapeless.ops.hlist.{Diff, IsHCons, Mapper, Prepend, ToTraversable, Tupler}
 import shapeless.ops.record.{Keys, Modifier, Remover, Values}
 
+import scala.language.experimental.macros
+
 /** [[TypedDataset]] is a safer interface for working with `Dataset`.
   *
   * NOTE: Prefer `TypedDataset.create` over `new TypedDataset` unless you
