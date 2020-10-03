@@ -1,6 +1,6 @@
 package frameless
 
-import frameless.functions.{lit => flit, litAggr}
+import frameless.functions.{litAggr, lit => flit}
 import frameless.syntax._
 import org.apache.spark.sql.catalyst.expressions._
 import org.apache.spark.sql.types.DecimalType
@@ -10,6 +10,7 @@ import shapeless.ops.record.Selector
 
 import scala.annotation.implicitNotFound
 import scala.reflect.ClassTag
+import scala.reflect.macros.whitebox
 
 sealed trait UntypedExpression[T] {
   def expr: Expression
@@ -28,6 +29,8 @@ sealed class TypedColumn[T, U](expr: Expression)(
   def this(column: Column)(implicit uencoder: TypedEncoder[U]) {
     this(FramelessInternals.expr(column))
   }
+
+  def this(x: Function1[T, U]): TypedColumn[T, U] = macro TypedColumn.macroImpl[T, U]
 
   override def typed[W, U1: TypedEncoder](c: Column): TypedColumn[W, U1] = c.typedColumn
   override def lit[U1: TypedEncoder](c: U1): TypedColumn[T,U1] = flit(c)
@@ -852,6 +855,24 @@ object TypedColumn {
         i0: LabelledGeneric.Aux[T, H],
         i1: Selector.Aux[H, K, V]
       ): Exists[T, K, V] = new Exists[T, K, V] {}
+  }
+
+  def macroImpl[T: c.WeakTypeTag, A: c.WeakTypeTag](c: whitebox.Context)(x: c.Tree) = {
+
+    import c.universe._
+
+    val t = c.weakTypeOf[T]
+    val a = c.weakTypeOf[A]
+
+    def buildExpression(columnName: String) = {
+      c.Expr[TypedColumn[T, A]](q"new frameless.TypedColumn[$t, $a]((org.apache.spark.sql.functions.col($columnName)).expr)")
+    }
+
+    x match {
+      case q"((${_: TermName}:${_: Type}) => ${_: TermName}.${p: TermName})" => buildExpression(p.toString())
+      case q"(_.${p: TermName})" => buildExpression(p.toString())
+      case x => throw new IllegalArgumentException(s"$x is not supported")
+    }
   }
 }
 
