@@ -26,3 +26,10 @@ bin/
 # OS X
 .DS_Store
 node_modules
+
+# vscode
+.bloop
+.metals
+.vscode
+project/metals.sbt
+project/

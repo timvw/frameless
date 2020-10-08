@@ -30,8 +30,6 @@ sealed class TypedColumn[T, U](expr: Expression)(
     this(FramelessInternals.expr(column))
   }
 
-  def this(x: Function1[T, U]): TypedColumn[T, U] = macro TypedColumn.macroImpl[T, U]
-
   override def typed[W, U1: TypedEncoder](c: Column): TypedColumn[W, U1] = c.typedColumn
   override def lit[U1: TypedEncoder](c: U1): TypedColumn[T,U1] = flit(c)
 }
