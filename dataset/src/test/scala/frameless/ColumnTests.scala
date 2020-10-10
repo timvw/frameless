@@ -3,7 +3,8 @@ package frameless
 import java.time.Instant
 
 import org.scalacheck.Prop._
-import org.scalacheck.{Arbitrary, Gen, Prop}, Arbitrary.arbitrary
+import org.scalacheck.{Arbitrary, Gen, Prop}
+import Arbitrary.arbitrary
 import org.scalatest.matchers.should.Matchers
 import shapeless.test.illTyped
 import ceedubs.irrec.regex.gen.CharRegexGen.genCharRegexAndCandidate
@@ -376,23 +377,6 @@ class ColumnTests extends TypedDatasetSuite with Matchers {
     "ds.select(!ds('_2))" shouldNot typeCheck
     "ds.select(!ds('_3))" shouldNot typeCheck
   }
-
-  test("col through lambda") {
-
-    case class MyClass1(a: Int, b: String, c: MyClass2)
-    case class MyClass2(d: Long)
-
-    val ds = TypedDataset.create(Seq(MyClass1(1, "2", MyClass2(3L)), MyClass1(4, "5", MyClass2(6L))))
-
-    assert(ds.col(_.a).isInstanceOf[TypedColumn[MyClass1, Int]])
-    assert(ds.col(_.b).isInstanceOf[TypedColumn[MyClass1, String]])
-    assert(ds.col(_.c.d).isInstanceOf[TypedColumn[MyClass1, Long]])
-
-    "ds.col(_.c.toString)" shouldNot typeCheck
-    "ds.col(_.c.toInt)" shouldNot typeCheck
-    "ds.col(x => java.lang.Math.abs(x.a))" shouldNot typeCheck
-
-    // we should be able to block the following as well...
-    //"ds.col(_.a.toInt)" shouldNot typeCheck
-  }
 }
+
+
